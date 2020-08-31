@@ -52,7 +52,7 @@ type connection struct {
 	connectContextMade   chan struct{}
 	canStream            bool
 	currentlyStreaming   bool
-	connectContextMutex  sync.Mutex
+	mu                   sync.Mutex
 
 	// pool related fields
 	pool         *pool
@@ -111,17 +111,17 @@ func (c *connection) connect(ctx context.Context) {
 	}
 	defer close(c.connectDone)
 
-	c.connectContextMutex.Lock()
+	c.mu.Lock()
 	ctx, c.cancelConnectContext = context.WithCancel(ctx)
-	c.connectContextMutex.Unlock()
+	c.mu.Unlock()
 
 	defer func() {
 		var cancelFn context.CancelFunc
 
-		c.connectContextMutex.Lock()
+		c.mu.Lock()
 		cancelFn = c.cancelConnectContext
 		c.cancelConnectContext = nil
-		c.connectContextMutex.Unlock()
+		c.mu.Unlock()
 
 		if cancelFn != nil {
 			cancelFn()
@@ -218,10 +218,10 @@ func (c *connection) closeConnectContext() {
 	<-c.connectContextMade
 	var cancelFn context.CancelFunc
 
-	c.connectContextMutex.Lock()
+	c.mu.Lock()
 	cancelFn = c.cancelConnectContext
 	c.cancelConnectContext = nil
-	c.connectContextMutex.Unlock()
+	c.mu.Unlock()
 
 	if cancelFn != nil {
 		cancelFn()

@@ -595,9 +595,6 @@ func TestPool(t *testing.T) {
 			if !strings.Contains(connErr.Error(), want) {
 				t.Errorf("Incorrect error. got %v; error should contain %v", connErr.Wrapped, want)
 			}
-			if p.conns.totalSize != 0 {
-				t.Errorf("Pool should have 0 total connection. got %d; want %d", p.conns.totalSize, 0)
-			}
 		})
 	})
 	t.Run("Connection", func(t *testing.T) {
