@@ -776,7 +776,7 @@ func (c *Client) ListDatabaseNames(ctx context.Context, filter interface{}, opts
 //
 // Any error returned by the fn callback will be returned without any modifications.
 func WithSession(ctx context.Context, sess Session, fn func(SessionContext) error) error {
-	return fn(NewSessionContext(ctx, sess))
+	return fn(ContextWithSession(ctx, sess))
 }
 
 // UseSession creates a new Session and uses it to create a new SessionContext, which is used to call the fn callback.
@@ -799,7 +799,7 @@ func (c *Client) UseSessionWithOptions(ctx context.Context, opts *options.Sessio
 	}
 
 	defer defaultSess.EndSession(ctx)
-	return fn(NewSessionContext(ctx, defaultSess))
+	return fn(ContextWithSession(ctx, defaultSess))
 }
 
 // Watch returns a change stream for all changes on the deployment. See

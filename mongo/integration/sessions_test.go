@@ -277,14 +277,14 @@ func TestSessions(t *testing.T) {
 
 	mt.Run("imperative API", func(mt *mtest.T) {
 		mt.Run("round trip Session object", func(mt *mtest.T) {
-			// Rountrip a Session object through NewSessionContext/ContextFromSession and assert that it is correctly
+			// Rountrip a Session object through ContextWithSession/ContextFromSession and assert that it is correctly
 			// stored/retrieved.
 
 			sess, err := mt.Client.StartSession()
 			assert.Nil(mt, err, "StartSession error: %v", err)
 			defer sess.EndSession(mtest.Background)
 
-			sessCtx := mongo.NewSessionContext(mtest.Background, sess)
+			sessCtx := mongo.ContextWithSession(mtest.Background, sess)
 			assert.Equal(mt, sess.ID(), sessCtx.ID(), "expected Session ID %v, got %v", sess.ID(), sessCtx.ID())
 
 			gotSess := mongo.SessionFromContext(sessCtx)
@@ -303,7 +303,7 @@ func TestSessions(t *testing.T) {
 				sess, err := mt.Client.StartSession()
 				assert.Nil(mt, err, "StartSession error: %v", err)
 
-				return mongo.NewSessionContext(mtest.Background, sess)
+				return mongo.ContextWithSession(mtest.Background, sess)
 			}
 
 			sessCtx := createSessionContext(mt)
