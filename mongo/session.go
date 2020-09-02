@@ -33,7 +33,7 @@ var withTransactionTimeout = 120 * time.Second
 //
 // There are two ways to create a SessionContext and use it in a session/transaction. The first is to use one of the
 // callback-based functions such as WithSession and UseSession. These functions create a SessionContext and pass it to
-// the provided callback. The other is to use ContextWithSession to explicitly create a SessionContext.
+// the provided callback. The other is to use NewSessionContext to explicitly create a SessionContext.
 type SessionContext interface {
 	context.Context
 	Session
@@ -47,8 +47,8 @@ type sessionContext struct {
 type sessionKey struct {
 }
 
-// ContextWithSession creates a new SessionContext associated with the given Context and Session parameters.
-func ContextWithSession(ctx context.Context, sess Session) SessionContext {
+// NewSessionContext creates a new SessionContext associated with the given Context and Session parameters.
+func NewSessionContext(ctx context.Context, sess Session) SessionContext {
 	return &sessionContext{
 		Context: context.WithValue(ctx, sessionKey{}, sess),
 		Session: sess,
@@ -56,7 +56,7 @@ func ContextWithSession(ctx context.Context, sess Session) SessionContext {
 }
 
 // SessionFromContext extracts the mongo.Session object stored in a Context. This can be used on a SessionContext that
-// was created implicitly through one of the callback-based session APIs or explicitly by calling ContextWithSession. If
+// was created implicitly through one of the callback-based session APIs or explicitly by calling NewSessionContext. If
 // there is no Session stored in the provided Context, nil is returned.
 func SessionFromContext(ctx context.Context) Session {
 	val := ctx.Value(sessionKey{})
@@ -174,7 +174,7 @@ func (s *sessionImpl) WithTransaction(ctx context.Context, fn func(sessCtx Sessi
 			return nil, err
 		}
 
-		res, err := fn(ContextWithSession(ctx, s))
+		res, err := fn(NewSessionContext(ctx, s))
 		if err != nil {
 			if s.clientSession.TransactionRunning() {
 				_ = s.AbortTransaction(ctx)
