@@ -927,6 +927,13 @@ func (c *Client) NumberSessionsInProgress() int {
 	return c.sessionPool.CheckedOut()
 }
 
+func (c *Client) createBaseCursorOptions() driver.CursorOptions {
+	return driver.CursorOptions{
+		CommandMonitor: c.monitor,
+		Crypt:          c.cryptFLE,
+	}
+}
+
 // IsTopologyConsistent returns false when we have a replica set that claims to
 // have no primary but there exists a primary with all other nodes as secondaries. This
 // specifically works around HELP-13825.
