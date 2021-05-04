@@ -769,6 +769,8 @@ func (t *Topology) publishTopologyClosedEvent() {
 	if t.cfg.serverMonitor != nil && t.cfg.serverMonitor.TopologyClosed != nil {
 		t.cfg.serverMonitor.TopologyClosed(topologyClosed)
 	}
+}
+
 // isTopologyConsistent returns false when we have a replica set that claims to
 // have no primary but there exists a primary with all other nodes as secondaries. This
 // specifically works around HELP-13825.
