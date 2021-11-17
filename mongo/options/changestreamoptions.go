@@ -68,6 +68,12 @@ func (cso *ChangeStreamOptions) SetBatchSize(i int32) *ChangeStreamOptions {
 	return cso
 }
 
+// SetCursorBatchSize sets the value for the CursorBatchSize field.
+func (cso *ChangeStreamOptions) SetCursorBatchSize(i int32) *ChangeStreamOptions {
+	cso.CursorBatchSize = &i
+	return cso
+}
+
 // SetCollation sets the value for the Collation field.
 func (cso *ChangeStreamOptions) SetCollation(c Collation) *ChangeStreamOptions {
 	cso.Collation = &c
