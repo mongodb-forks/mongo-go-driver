@@ -17,6 +17,10 @@ type ChangeStreamOptions struct {
 	// The maximum number of documents to be included in each batch returned by the server.
 	BatchSize *int32
 
+	// The maximum number of documents to be included in each batch returned by the server for the cursor.
+	// This excludes the batch size for the aggregation that can occur.
+	CursorBatchSize *int32
+
 	// Specifies a collation to use for string comparisons during the operation. This option is only valid for MongoDB
 	// versions >= 3.4. For previous server versions, the driver will return an error if this option is used. The
 	// default value is nil, which means the default collation of the collection will be used.
