@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/internal/assert"
+	"go.mongodb.org/mongo-driver/internal/require"
 	"go.mongodb.org/mongo-driver/mongo/description"
 )
 
@@ -28,7 +29,7 @@ func TestTopologyErrors(t *testing.T) {
 	t.Run("errors are wrapped", func(t *testing.T) {
 		t.Run("server selection error", func(t *testing.T) {
 			topo, err := New(nil)
-			noerr(t, err)
+			require.NoError(t, err)
 
 			atomic.StoreInt64(&topo.state, topologyConnected)
 			desc := description.Topology{
@@ -46,15 +47,21 @@ func TestTopologyErrors(t *testing.T) {
 			assert.Nil(t, err, "error creating topology: %v", err)
 
 			var serverSelectionErr error
-			callback := func(ctx context.Context) {
-				selectServerCtx, cancel := context.WithTimeout(ctx, 10*time.Millisecond)
+			callback := func() bool {
+				selectServerCtx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
 				defer cancel()
 
 				state := newServerSelectionState(selectNone, make(<-chan time.Time))
 				subCh := make(<-chan description.Topology)
 				_, serverSelectionErr = topo.selectServerFromSubscription(selectServerCtx, subCh, state)
+				return true
 			}
-			assert.Soon(t, callback, 150*time.Millisecond)
+			assert.Eventually(t,
+				callback,
+				150*time.Millisecond,
+				time.Millisecond,
+				"expected context deadline to fail within 150ms")
+
 			assert.True(t, errors.Is(serverSelectionErr, context.DeadlineExceeded), "expected %v, received %v",
 				context.DeadlineExceeded, serverSelectionErr)
 		})

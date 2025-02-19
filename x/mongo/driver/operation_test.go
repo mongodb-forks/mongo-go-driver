@@ -80,7 +80,7 @@ func TestOperation(t *testing.T) {
 			_, err := op.selectServer(context.Background(), 1, nil)
 			noerr(t, err)
 
-			// Assert the the selector is an operation selector wrapper.
+			// Assert the selector is an operation selector wrapper.
 			oss, ok := d.params.selector.(*opServerSelector)
 			require.True(t, ok)
 
@@ -582,7 +582,7 @@ func TestOperation(t *testing.T) {
 			rCanStream: false,
 		}
 		op := Operation{
-			CommandFn: func(dst []byte, desc description.SelectedServer) ([]byte, error) {
+			CommandFn: func(dst []byte, _ description.SelectedServer) ([]byte, error) {
 				return bsoncore.AppendInt32Element(dst, handshake.LegacyHello, 1), nil
 			},
 			Database:   "admin",
@@ -621,7 +621,7 @@ func TestOperation(t *testing.T) {
 		op := Operation{
 			Database:   "foobar",
 			Deployment: SingleConnectionDeployment{C: conn},
-			CommandFn: func(dst []byte, desc description.SelectedServer) ([]byte, error) {
+			CommandFn: func(dst []byte, _ description.SelectedServer) ([]byte, error) {
 				dst = bsoncore.AppendInt32Element(dst, "ping", 1)
 				return dst, nil
 			},
@@ -642,7 +642,7 @@ func TestOperation(t *testing.T) {
 		op := Operation{
 			Database:   "foobar",
 			Deployment: SingleConnectionDeployment{C: conn},
-			CommandFn: func(dst []byte, desc description.SelectedServer) ([]byte, error) {
+			CommandFn: func(dst []byte, _ description.SelectedServer) ([]byte, error) {
 				dst = bsoncore.AppendInt32Element(dst, "ping", 1)
 				return dst, nil
 			},
@@ -668,7 +668,7 @@ func TestOperation(t *testing.T) {
 		op := Operation{
 			Database:   "foobar",
 			Deployment: d,
-			CommandFn: func(dst []byte, desc description.SelectedServer) ([]byte, error) {
+			CommandFn: func(dst []byte, _ description.SelectedServer) ([]byte, error) {
 				return dst, nil
 			},
 			Timeout: &dur,
@@ -789,6 +789,8 @@ func (m *mockConnection) SupportsStreaming() bool         { return m.rCanStream 
 func (m *mockConnection) CurrentlyStreaming() bool        { return m.rStreaming }
 func (m *mockConnection) SetStreaming(streaming bool)     { m.rStreaming = streaming }
 func (m *mockConnection) Stale() bool                     { return false }
+func (m *mockConnection) OIDCTokenGenID() uint64          { return 0 }
+func (m *mockConnection) SetOIDCTokenGenID(uint64)        {}
 
 // TODO:(GODRIVER-2824) replace return type with int64.
 func (m *mockConnection) DriverConnectionID() uint64 { return 0 }

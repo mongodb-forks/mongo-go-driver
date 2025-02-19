@@ -60,7 +60,7 @@ check-fmt: install-lll
 check-modules:
 	go mod tidy -v
 	go mod vendor
-	git diff --exit-code go.mod go.sum ./vendor
+	git diff --exit-code go.mod go.sum ./vendor # Compare to the PR / WF Branch.
 
 .PHONY: doc
 doc:
@@ -72,7 +72,7 @@ fmt:
 
 .PHONY: install-golangci-lint
 install-golangci-lint:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.1
 
 # Lint with various GOOS and GOARCH targets to catch static analysis failures that may only affect
 # specific operating systems or architectures. For example, staticcheck will only check for 64-bit
@@ -106,7 +106,7 @@ test-race:
 
 .PHONY: test-short
 test-short:
-	go test $(BUILD_TAGS) -timeout 60s -short ./...
+	go test $(BUILD_TAGS) -timeout 60s -short -race ./...
 
 ### Local FaaS targets. ###
 .PHONY: build-faas-awslambda
@@ -131,6 +131,11 @@ evg-test-atlas-data-lake:
 .PHONY: evg-test-enterprise-auth
 evg-test-enterprise-auth:
 	go run -tags gssapi ./cmd/testentauth/main.go
+
+.PHONY: evg-test-oidc-auth
+evg-test-oidc-auth:
+	go run ./cmd/testoidcauth/main.go
+	go run -race ./cmd/testoidcauth/main.go
 
 .PHONY: evg-test-kmip
 evg-test-kmip:
@@ -158,7 +163,8 @@ evg-test-load-balancers:
 
 .PHONY: evg-test-search-index
 evg-test-search-index:
-	go test ./mongo/integration -run TestSearchIndexProse -v -timeout $(TEST_TIMEOUT)s >> test.suite
+	# Double the timeout to wait for the responses from the server.
+	go test ./mongo/integration -run TestSearchIndexProse -v -timeout $(shell echo "$$(( $(TEST_TIMEOUT) * 2))")s >> test.suite
 
 .PHONY: evg-test-ocsp
 evg-test-ocsp:

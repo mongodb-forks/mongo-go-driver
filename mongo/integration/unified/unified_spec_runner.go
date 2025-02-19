@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
 	"strings"
 	"testing"
@@ -23,7 +24,7 @@ import (
 )
 
 var (
-	skippedTestDescriptions = map[string]string{
+	skippedTests = map[string]string{
 		// GODRIVER-1773: This test runs a "find" with limit=4 and batchSize=3. It expects batchSize values of three for
 		// the "find" and one for the "getMore", but we send three for both.
 		"A successful find event with a getmore and the server kills the cursor (<= 4.4)": "See GODRIVER-1773",
@@ -150,6 +151,13 @@ func runTestFile(t *testing.T, filepath string, expectValidFail bool, opts ...*O
 			CreateClient(false)
 
 		mt.RunOpts(testCase.Description, mtOpts, func(mt *mtest.T) {
+			// Skip CSOT spec tests when SKIP_CSOT_TESTS=true. In Evergreen, we
+			// typically set that environment variable on Windows and macOS
+			// because the CSOT spec tests are unreliable on those hosts.
+			if os.Getenv("SKIP_CSOT_TESTS") == "true" && strings.Contains(filepath, "client-side-operations-timeout") {
+				mt.Skip("Skipping CSOT spec test because SKIP_CSOT_TESTS=true")
+			}
+
 			defer func() {
 				// catch panics from looking up elements and fail if it's unexpected
 				if r := recover(); r != nil {
@@ -248,8 +256,8 @@ func (tc *TestCase) Run(ls LoggerSkipper) error {
 	if tc.SkipReason != nil {
 		ls.Skipf("skipping for reason: %q", *tc.SkipReason)
 	}
-	if skipReason, ok := skippedTestDescriptions[tc.Description]; ok {
-		ls.Skipf("skipping due to known failure: %v", skipReason)
+	if skipReason, ok := skippedTests[tc.Description]; ok {
+		ls.Skipf("skipping due to known failure: %q", skipReason)
 	}
 
 	// Validate that we support the schema declared by the test file before attempting to use its contents.

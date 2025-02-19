@@ -9,6 +9,7 @@ package auth
 import (
 	"bytes"
 	"context"
+	"net/http"
 	"testing"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -32,7 +33,7 @@ func TestSpeculativeX509(t *testing.T) {
 		// Tests for X509 when the hello response contains a reply to the speculative authentication attempt. The
 		// driver should not send any more commands after the hello.
 
-		authenticator, err := CreateAuthenticator("MONGODB-X509", &Cred{})
+		authenticator, err := CreateAuthenticator("MONGODB-X509", &Cred{}, &http.Client{})
 		assert.Nil(t, err, "CreateAuthenticator error: %v", err)
 		handshaker := Handshaker(nil, &HandshakeOptions{
 			Authenticator: authenticator,
@@ -76,7 +77,7 @@ func TestSpeculativeX509(t *testing.T) {
 		// Tests for X509 when the hello response does not contain a reply to the speculative authentication attempt.
 		// The driver should send an authenticate command after the hello.
 
-		authenticator, err := CreateAuthenticator("MONGODB-X509", &Cred{})
+		authenticator, err := CreateAuthenticator("MONGODB-X509", &Cred{}, &http.Client{})
 		assert.Nil(t, err, "CreateAuthenticator error: %v", err)
 		handshaker := Handshaker(nil, &HandshakeOptions{
 			Authenticator: authenticator,
@@ -125,7 +126,7 @@ func createSpeculativeX509Handshake() []bsoncore.Document {
 	return []bsoncore.Document{hello}
 }
 
-// createSpeculativeX509Handshake creates the server replies for a handshake + X509 authentication attempt.
+// createRegularX509Handshake creates the server replies for a handshake + X509 authentication attempt.
 // There are two replies:
 //
 // 1. hello reply
